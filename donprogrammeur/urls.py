@@ -23,6 +23,7 @@ urlpatterns = [
     path('', getting, ),
     path('__debug__/', include('debug_toolbar.urls')),
     path('products/', include('apps.urls')),
+    path('products/v2/', include('donprogrammeur.routers')),
     path('auth/', obtain_auth_token),
 
 ]

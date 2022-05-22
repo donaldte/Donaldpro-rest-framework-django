@@ -42,6 +42,15 @@ INSTALLED_APPS = [
     'apps',
     'debug_toolbar',
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'apps.authentification.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ]
+}
 
 INTERNAL_IPS = [
     # ...

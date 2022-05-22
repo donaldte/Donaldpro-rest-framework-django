@@ -7,8 +7,9 @@ from .serializers import ProductSerializer
 from .permissions import CustomPermissions
 
 from rest_framework import generics, mixins, permissions, authentication
+from .authentification import TokenAuthentication
 
-
+from rest_framework.authtoken.models import Token
 @api_view(['GET'])
 def getting(request):
     instance = ProductSerializer(data=request.data)
@@ -17,20 +18,19 @@ def getting(request):
     return Response(instance.data)
 
 
-class ProductDetailView(generics.RetrieveAPIView):
+
+class StaffPermissionMixims():
+    permission_classes = [permissions.IsAdminUser, CustomPermissions]
+
+class ProductDetailView(StaffPermissionMixims,generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class  = ProductSerializer
 product_detail_view = ProductDetailView.as_view()        
 
-class ProductListCreateView(generics.ListCreateAPIView):
+class ProductListCreateView(StaffPermissionMixims, generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class  = ProductSerializer
-    permission_classes = [permissions.IsAdminUser, CustomPermissions]
-    authentication_classes = [
-        authentication.TokenAuthentication ,
-        authentication.SessionAuthentication
-        ]
-
+    
     def perform_create(self, serializer):
         name = serializer.validated_data.get('name')
         description = serializer.validated_data.get('description') or None
@@ -40,10 +40,10 @@ class ProductListCreateView(generics.ListCreateAPIView):
         
 product_list_create_view = ProductListCreateView.as_view()
 
-class ProductUpdadteView(generics.UpdateAPIView):
+class ProductUpdadteView(StaffPermissionMixims, generics.UpdateAPIView):
     queryset = Product.objects.all()
     serializer_class  = ProductSerializer
-    permission_classes = [permissions.DjangoModelPermissions]
+   
 
     def perform_update(self, serializer):
         description = serializer.validated_data.get('description') or None
@@ -53,7 +53,7 @@ class ProductUpdadteView(generics.UpdateAPIView):
            
 product_update_view = ProductUpdadteView.as_view()
 
-class ProductDeleteView(generics.DestroyAPIView):
+class ProductDeleteView(StaffPermissionMixims, generics.DestroyAPIView):
     queryset = Product.objects.all()
     serializer_class  = ProductSerializer
     def perform_destroy(self, instance):
