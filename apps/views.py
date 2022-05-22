@@ -22,21 +22,35 @@ def getting(request):
 class StaffPermissionMixims():
     permission_classes = [permissions.IsAdminUser, CustomPermissions]
 
+class QursetMixims():
+    user_field = 'user'
+    def get_queryset(self, *args, **kwargs):
+        lookup_data = {}
+        lookup_data[self.user_field] = self.request.user
+        return super().get_queryset(*args, **kwargs).filter(**lookup_data)
+      
+
 class ProductDetailView(StaffPermissionMixims,generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class  = ProductSerializer
 product_detail_view = ProductDetailView.as_view()        
 
-class ProductListCreateView(StaffPermissionMixims, generics.ListCreateAPIView):
+class ProductListCreateView(StaffPermissionMixims,QursetMixims, generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class  = ProductSerializer
     
     def perform_create(self, serializer):
+        email = serializer.validated_data.pop('email')
+        print(email)
         name = serializer.validated_data.get('name')
         description = serializer.validated_data.get('description') or None
+        user =self.request.user 
         if description is None:
             description = name
-        serializer.save(description=description)
+        serializer.save(description=description, user=user)
+
+   
+      
         
 product_list_create_view = ProductListCreateView.as_view()
 
@@ -124,7 +138,24 @@ class ProductMixinsView(
             description = name
         serializer.save(description=description)    
 
-product_mixim_views = ProductMixinsView.as_view()                      
+product_mixim_views = ProductMixinsView.as_view() 
 
+
+class SearchListView(generics.ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset(*args, **kwargs)
+        q = self.request.GET.get('q')
+        results = Product.objects.none()
+        if q is not None:
+            user = None
+            if self.request.user.is_authenticated:
+                user = self.request.user
+            results = qs.search(q, user)
+        return results    
+            
+    
 
 

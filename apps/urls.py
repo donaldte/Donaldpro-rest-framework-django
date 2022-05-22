@@ -6,4 +6,5 @@ urlpatterns = [
    path('create-list', product_list_create_view),
    path('update/<int:pk>', product_update_view),
    path('delete/<int:pk>', product_mixim_views),
+   path('search-product', SearchListView.as_view()),
 ]
